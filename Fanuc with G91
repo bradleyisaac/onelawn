@@ -10,7 +10,7 @@
   FORKID {04622D27-72F0-45d4-85FB-DB346FD1AE22}
 */
 
-description = "FANUC (with G91)-Test";
+description = "FANUC (with G91)-Back";
 vendor = "Fanuc";
 vendorUrl = "http://www.fanuc.com";
 legal = "Copyright (C) 2012-2026 by Autodesk, Inc.";
