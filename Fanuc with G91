@@ -31,7 +31,7 @@ minimumCircularRadius = spatial(0.01, MM);
 maximumCircularRadius = spatial(1000, MM);
 minimumCircularSweep = toRad(0.01);
 maximumCircularSweep = toRad(180);
-allowHelicalMoves = true;
+allowHelicalMoves = false;
 allowedCircularPlanes = undefined; // allow any circular motion
 highFeedrate = (unit == MM) ? 5000 : 200;
 probeMultipleFeatures = true;
@@ -136,7 +136,7 @@ properties = {
     description: "Writes operation notes as comments in the outputted code.",
     group      : "formats",
     type       : "boolean",
-    value      : false,
+    value      : true,
     scope      : "post"
   },
   useSmoothing: {
@@ -191,7 +191,7 @@ properties = {
     description: "Enable to use G68.2 for 3+2 operations.",
     group      : "multiAxis",
     type       : "boolean",
-    value      : true,
+    value      : false,
     scope      : "post"
   },
   safePositionMethod: {
@@ -549,7 +549,8 @@ function onSection() {
   if (isProbeOperation()) {
     validate(probeVariables.probeAngleMethod != "G68", "You cannot probe while G68 Rotation is in effect.");
     validate(probeVariables.probeAngleMethod != "G54.4", "You cannot probe while workpiece setting error compensation G54.4 is enabled.");
-    writeBlock(gFormat.format(65), "P" + 9832); // spin the probe on
+    writeln("//Attempt G65");
+    //writeBlock(gFormat.format(65), "P" + 9832); // spin the probe on
     inspectionCreateResultsFileHeader();
   }
 
@@ -675,12 +676,15 @@ function onCyclePoint(x, y, z) {
           writeBlock(mFormat.format(29), sOutput.format(spindleSpeed));
         }
         if (getProperty("usePitchForTapping")) {
+          writeln("//Attempt G95");
+          /*
           writeBlock(
             gRetractModal.format(98), gAbsIncModal.format(useIncremental ? 91 : 90), gFeedModeModal.format(95), gCycleModal.format((tool.type == TOOL_TAP_LEFT_HAND) ? 74 : 84),
             getCommonCycle(x, y, z, cycle.retract, cycle.clearance),
             "P" + milliFormat.format(P),
             pitchOutput.format(tool.threadPitch)
           );
+          */
           forceFeed();
         } else {
           var tappingFPM = tool.getThreadPitch() * rpmFormat.getResultingValue(spindleSpeed);
@@ -698,22 +702,28 @@ function onCyclePoint(x, y, z) {
           writeBlock(mFormat.format(29), sOutput.format(spindleSpeed));
         }
         if (getProperty("usePitchForTapping")) {
+          writeln("//Attempt G74 or G95");
+          /*
           writeBlock(
             gRetractModal.format(98), gAbsIncModal.format(useIncremental ? 91 : 90), gFeedModeModal.format(95), gCycleModal.format(74),
             getCommonCycle(x, y, z, cycle.retract, cycle.clearance),
             "P" + milliFormat.format(P),
             pitchOutput.format(tool.threadPitch)
           );
+          */
           forceFeed();
         } else {
           var tappingFPM = tool.getThreadPitch() * rpmFormat.getResultingValue(spindleSpeed);
           F = (getProperty("useG95") ? tool.getThreadPitch() : tappingFPM);
+          writeln("//Attempt G74");
+          /*
           writeBlock(
             gRetractModal.format(98), gAbsIncModal.format(useIncremental ? 91 : 90), gCycleModal.format(74),
             getCommonCycle(x, y, z, cycle.retract, cycle.clearance),
             "P" + milliFormat.format(P),
             feedOutput.format(F)
           );
+          */
         }
         break;
       case "right-tapping":
@@ -721,22 +731,28 @@ function onCyclePoint(x, y, z) {
           writeBlock(mFormat.format(29), sOutput.format(spindleSpeed));
         }
         if (getProperty("usePitchForTapping")) {
+          writeln("//Attempt G84 or G95");
+          /*
           writeBlock(
             gRetractModal.format(98), gAbsIncModal.format(useIncremental ? 91 : 90), gFeedModeModal.format(95), gCycleModal.format(84),
             getCommonCycle(x, y, z, cycle.retract, cycle.clearance),
             "P" + milliFormat.format(P),
             pitchOutput.format(tool.threadPitch)
           );
+          */
           forceFeed();
         } else {
           var tappingFPM = tool.getThreadPitch() * rpmFormat.getResultingValue(spindleSpeed);
           F = (getProperty("useG95") ? tool.getThreadPitch() : tappingFPM);
+          writeln("//Attempt G84");
+          /*
           writeBlock(
             gRetractModal.format(98), gAbsIncModal.format(useIncremental ? 91 : 90), gCycleModal.format(84),
             getCommonCycle(x, y, z, cycle.retract, cycle.clearance),
             "P" + milliFormat.format(P),
             feedOutput.format(F)
           );
+          */
         }
         break;
       case "tapping-with-chip-breaking":
@@ -750,6 +766,8 @@ function onCyclePoint(x, y, z) {
             writeBlock(mFormat.format(29), sOutput.format(spindleSpeed));
           }
           if (getProperty("usePitchForTapping")) {
+            writeln("//Attempt G95");
+            /*
             writeBlock(
               gRetractModal.format(98), gAbsIncModal.format(useIncremental ? 91 : 90), gFeedModeModal.format(95), gCycleModal.format((tool.type == TOOL_TAP_LEFT_HAND ? 74 : 84)),
               getCommonCycle(x, y, z, cycle.retract, cycle.clearance),
@@ -757,6 +775,7 @@ function onCyclePoint(x, y, z) {
               peckOutput.format(cycle.incrementalDepth),
               pitchOutput.format(tool.threadPitch)
             );
+            */
             forceFeed();
           } else {
             var tappingFPM = tool.getThreadPitch() * rpmFormat.getResultingValue(spindleSpeed);
@@ -772,6 +791,8 @@ function onCyclePoint(x, y, z) {
         }
         break;
       case "fine-boring":
+        writeln("//Attempt G76");
+        /*
         writeBlock(
           gRetractModal.format(98), gAbsIncModal.format(useIncremental ? 91 : 90), gCycleModal.format(76),
           getCommonCycle(x, y, z, cycle.retract, cycle.clearance),
@@ -779,11 +800,14 @@ function onCyclePoint(x, y, z) {
           "Q" + xyzFormat.format(cycle.shift),
           feedOutput.format(F)
         );
+        */
         break;
       case "back-boring":
         var dx = (gPlaneModal.getCurrent() == 19) ? cycle.backBoreDistance : 0;
         var dy = (gPlaneModal.getCurrent() == 18) ? cycle.backBoreDistance : 0;
         var dz = (gPlaneModal.getCurrent() == 17) ? cycle.backBoreDistance : 0;
+        writeln("//Attempt G87");
+        /*
         writeBlock(
           gRetractModal.format(98), gAbsIncModal.format(useIncremental ? 91 : 90), gCycleModal.format(87),
           getCommonCycle(x - dx, y - dy, z - dz, cycle.bottom, cycle.clearance),
@@ -791,6 +815,7 @@ function onCyclePoint(x, y, z) {
           "P" + milliFormat.format(P), // not optional
           feedOutput.format(F)
         );
+        */
         break;
       case "reaming":
         if (feedFormat.getResultingValue(cycle.feedrate) != feedFormat.getResultingValue(cycle.retractFeedrate)) {
@@ -816,20 +841,26 @@ function onCyclePoint(x, y, z) {
         if (P > 0) {
           expandCyclePoint(x, y, z);
         } else {
+          writeln("//Attempt G86");
+          /*
           writeBlock(
             gRetractModal.format(98), gAbsIncModal.format(useIncremental ? 91 : 90), gCycleModal.format(86),
             getCommonCycle(x, y, z, cycle.retract, cycle.clearance),
             feedOutput.format(F)
           );
+          */
         }
         break;
       case "manual-boring":
+        writeln("//Attempt G88");
+        /*
         writeBlock(
           gRetractModal.format(98), gAbsIncModal.format(useIncremental ? 91 : 90), gCycleModal.format(88),
           getCommonCycle(x, y, z, cycle.retract, cycle.clearance),
           "P" + milliFormat.format(P), // not optional
           feedOutput.format(F)
         );
+        */
         break;
       case "boring":
         if (feedFormat.getResultingValue(cycle.feedrate) != feedFormat.getResultingValue(cycle.retractFeedrate)) {
@@ -883,7 +914,8 @@ function onCycleEnd() {
   if (isProbeOperation()) {
     zOutput.reset();
     gMotionModal.reset();
-    writeBlock(gFormat.format(65), "P" + 9810, zOutput.format(cycle.retract)); // protected retract move
+    writeln("//Attempt G65");
+    //writeBlock(gFormat.format(65), "P" + 9810, zOutput.format(cycle.retract)); // protected retract move
   } else if (!cycleExpanded) {
     writeBlock(gFeedModeModal.format(getProperty("useG95") ? 95 : 94), gCycleModal.format(80));
     zOutput.reset();
@@ -916,7 +948,9 @@ function onCommand(command) {
     return;
   case COMMAND_START_SPINDLE:
     forceSpindleSpeed = false;
-    writeBlock(sOutput.format(spindleSpeed), mFormat.format(tool.clockwise ? 3 : 4));
+    writeBlock(sOutput.format(spindleSpeed), mFormat.format(0));
+    writeln("//Attempt M3 or M4");
+    //writeBlock(sOutput.format(spindleSpeed), mFormat.format(tool.clockwise ? 3 : 4));
     return;
   case COMMAND_LOAD_TOOL:
     writeToolBlock("T" + toolFormat.format(tool.number), mFormat.format(6));
@@ -980,7 +1014,8 @@ function onSectionEnd() {
   setAbsIncMode(false, getCurrentPosition(), getCurrentDirection()); //set to absolute mode
 
   if (isProbeOperation()) {
-    writeBlock(gFormat.format(65), "P" + 9833); // spin the probe off
+    writeln("//Attempt G65");
+    //writeBlock(gFormat.format(65), "P" + 9833); // spin the probe off
     if (probeVariables.probeAngleMethod != "G68") {
       setProbeAngle(); // output probe angle rotations if required
     }
@@ -1002,14 +1037,20 @@ function writeRetract() {
       var words = retract.singleLine ? retract.words : retract.words[i];
       switch (retract.method) {
       case "G28":
+        writeln("//Attempt G28");
+        /*
         forceModals(gMotionModal, gAbsIncModal);
         writeBlock(gFormat.format(28), gAbsIncModal.format(91), words);
         writeBlock(gAbsIncModal.format(useIncremental ? 91 : 90));
+        */
         break;
       case "G30":
+        writeln("//Attempt G30");
+        /*
         forceModals(gMotionModal, gAbsIncModal);
         writeBlock(gFormat.format(30), gAbsIncModal.format(91), words);
         writeBlock(gAbsIncModal.format(useIncremental ? 91 : 90));
+        */
         break;
       case "G53":
         forceModals(gMotionModal);
@@ -1052,7 +1093,8 @@ function onClose() {
   setWorkPlane(new Vector(0, 0, 0)); // reset working plane
 
   if (probeVariables.probeAngleMethod == "G54.4") {
-    writeBlock(gFormat.format(54.4), "P0");
+    writeln("//Attempt G54.4");
+    //writeBlock(gFormat.format(54.4), "P0");
   }
   if (getSetting("retract.homeXY.onProgramEnd", false)) {
     writeRetract(settings.retract.homeXY.onProgramEnd);
@@ -2519,10 +2561,12 @@ function onCircular(clockwise, cx, cy, cz, x, y, z, feed) {
       writeBlock(gPlaneModal.format(17), gMotionModal.format(clockwise ? 2 : 3), iOutput.format(cx - start.x), jOutput.format(cy - start.y), getFeed(feed));
       break;
     case PLANE_ZX:
-      writeBlock(gPlaneModal.format(18), gMotionModal.format(clockwise ? 2 : 3), iOutput.format(cx - start.x), kOutput.format(cz - start.z), getFeed(feed));
+      writeln("//Attempt G18");
+      //writeBlock(gPlaneModal.format(18), gMotionModal.format(clockwise ? 2 : 3), iOutput.format(cx - start.x), kOutput.format(cz - start.z), getFeed(feed));
       break;
     case PLANE_YZ:
-      writeBlock(gPlaneModal.format(19), gMotionModal.format(clockwise ? 2 : 3), jOutput.format(cy - start.y), kOutput.format(cz - start.z), getFeed(feed));
+      writeln("//Attempt G19");
+      //writeBlock(gPlaneModal.format(19), gMotionModal.format(clockwise ? 2 : 3), jOutput.format(cy - start.y), kOutput.format(cz - start.z), getFeed(feed));
       break;
     default:
       linearize(tolerance);
@@ -2533,10 +2577,12 @@ function onCircular(clockwise, cx, cy, cz, x, y, z, feed) {
       writeBlock(gPlaneModal.format(17), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), iOutput.format(cx - start.x), jOutput.format(cy - start.y), getFeed(feed));
       break;
     case PLANE_ZX:
-      writeBlock(gPlaneModal.format(18), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), iOutput.format(cx - start.x), kOutput.format(cz - start.z), getFeed(feed));
+      writeln("//Attempt G18");
+      //writeBlock(gPlaneModal.format(18), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), iOutput.format(cx - start.x), kOutput.format(cz - start.z), getFeed(feed));
       break;
     case PLANE_YZ:
-      writeBlock(gPlaneModal.format(19), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), jOutput.format(cy - start.y), kOutput.format(cz - start.z), getFeed(feed));
+      writeln("//Attempt G19");
+      //writeBlock(gPlaneModal.format(19), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), jOutput.format(cy - start.y), kOutput.format(cz - start.z), getFeed(feed));
       break;
     default:
       if (getProperty("allow3DArcs")) {
@@ -2559,10 +2605,12 @@ function onCircular(clockwise, cx, cy, cz, x, y, z, feed) {
       writeBlock(gPlaneModal.format(17), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), "R" + rFormat.format(r), getFeed(feed));
       break;
     case PLANE_ZX:
-      writeBlock(gPlaneModal.format(18), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), "R" + rFormat.format(r), getFeed(feed));
+      writeln("//Attempt G18");
+      //writeBlock(gPlaneModal.format(18), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), "R" + rFormat.format(r), getFeed(feed));
       break;
     case PLANE_YZ:
-      writeBlock(gPlaneModal.format(19), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), "R" + rFormat.format(r), getFeed(feed));
+      writeln("//Attempt G19");
+      //writeBlock(gPlaneModal.format(19), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), "R" + rFormat.format(r), getFeed(feed));
       break;
     default:
       if (getProperty("allow3DArcs")) {
@@ -3510,11 +3558,14 @@ function setProbeAngle() {
     var validateWorkOffset = false;
     switch (probeVariables.probeAngleMethod) {
     case "G54.4":
+      writeln("//Attempt G54.4");
+      /*
       var param = baseParamG54x4 + (probeOutputWorkOffset * 10);
       writeBlock("#" + param + "=" + px);
       writeBlock("#" + (param + 1) + "=" + py);
       writeBlock("#" + (param + 5) + "=" + pr);
       writeBlock(gFormat.format(54.4), "P" + probeOutputWorkOffset);
+      */
       break;
     case "G68":
       gRotationModal.reset();
