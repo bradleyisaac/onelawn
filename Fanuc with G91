@@ -403,7 +403,10 @@ function onOpen() {
   writeProgramHeader();
 
   // absolute coordinates and feed per min
-  writeBlock(gAbsIncModal.format(90), gFeedModeModal.format(getProperty("useG95") ? 95 : 94), gPlaneModal.format(17), toolLengthCompOutput.format(49), gFormat.format(40), gFormat.format(80));
+  writeln("//Attempt G17: XY Plane Selection");
+  writeln("//Attempt G49: Z Tool Length Offset Cancel");
+  writeBlock(gAbsIncModal.format(90), gFeedModeModal.format(getProperty("useG95") ? 95 : 94), gFormat.format(40), gFormat.format(80));
+  //writeBlock(gAbsIncModal.format(90), gFeedModeModal.format(getProperty("useG95") ? 95 : 94), gPlaneModal.format(17), toolLengthCompOutput.format(49), gFormat.format(40), gFormat.format(80));
   writeBlock(gUnitModal.format(unit == MM ? 21 : 20));
   validateCommonParameters();
 }
@@ -521,7 +524,10 @@ function onSection() {
     initializeParametricFeeds(insertToolCall);
   }
   // Output modal commands here
-  writeBlock(gPlaneModal.format(17), gAbsIncModal.format(90), gFeedModeModal.format(getProperty("useG95") ? 95 : 94));
+  writeln("//Attempt G17: XY Plane Selection");
+  writeln("//Attempt G94 or G95: Feed per Minute or Feed per Revolution");
+  writeBlock(gAbsIncModal.format(90));
+  //writeBlock(gPlaneModal.format(17), gAbsIncModal.format(90), gFeedModeModal.format(getProperty("useG95") ? 95 : 94));
 
   // wcs
   if (insertToolCall) { // force work offset when changing tool
@@ -569,6 +575,9 @@ function onSection() {
 }
 
 function onDwell(seconds) {
+  writeln("//Attempt G4: Dwell");
+  writeln("//Attempt G94: Feed per Minute");
+  /*
   var maxValue = 99999.999;
   if (seconds > maxValue) {
     warning(subst(localize("Dwelling time of '%1' exceeds the maximum value of '%2' in operation '%3'"), seconds, maxValue, getParameter("operation-comment", "")));
@@ -577,6 +586,7 @@ function onDwell(seconds) {
   var saveFeedMode = gFeedModeModal.getCurrent();
   writeBlock(gFeedModeModal.format(94), gFormat.format(4), "P" + milliFormat.format(milliseconds));
   writeBlock(gFeedModeModal.format(saveFeedMode));
+  */
 }
 
 function onSpindleSpeed(spindleSpeed) {
@@ -584,7 +594,8 @@ function onSpindleSpeed(spindleSpeed) {
 }
 
 function onCycle() {
-  writeBlock(gPlaneModal.format(17));
+  writeln("//Attempt G17: XY Plane Selection");
+  //writeBlock(gPlaneModal.format(17));
 }
 
 function getCommonCycle(x, y, z, r, c) {
@@ -1000,7 +1011,8 @@ function onSectionEnd() {
   if (currentSection.isMultiAxis()) {
     writeBlock(gFeedModeModal.format(getProperty("useG95") ? 95 : 94)); // inverse time feed off
   }
-  writeBlock(gPlaneModal.format(17));
+  writeln("//Attempt G17: XY Plane Selection");
+  //writeBlock(gPlaneModal.format(17));
 
   if (!isLastSection()) {
     if (getNextSection().getTool().coolant != tool.coolant) {
@@ -2465,7 +2477,8 @@ function onLinear(_x, _y, _z, feed) {
     if (pendingRadiusCompensation >= 0) {
       pendingRadiusCompensation = -1;
       var d = getSetting("outputToolDiameterOffset", true) ? diameterOffsetFormat.format(tool.diameterOffset) : "";
-      writeBlock(gPlaneModal.format(17));
+      writeln("//Attempt G17: XY Plane Selection");
+      //writeBlock(gPlaneModal.format(17));
       switch (radiusCompensation) {
       case RADIUS_COMPENSATION_LEFT:
         writeBlock(gMotionModal.format(1), gFormat.format(41), x, y, z, d, f);
@@ -2558,7 +2571,8 @@ function onCircular(clockwise, cx, cy, cz, x, y, z, feed) {
     }
     switch (getCircularPlane()) {
     case PLANE_XY:
-      writeBlock(gPlaneModal.format(17), gMotionModal.format(clockwise ? 2 : 3), iOutput.format(cx - start.x), jOutput.format(cy - start.y), getFeed(feed));
+      writeln("//Attempt G17: XY Plane Selection");
+      //writeBlock(gPlaneModal.format(17), gMotionModal.format(clockwise ? 2 : 3), iOutput.format(cx - start.x), jOutput.format(cy - start.y), getFeed(feed));
       break;
     case PLANE_ZX:
       writeln("//Attempt G18");
@@ -2574,7 +2588,8 @@ function onCircular(clockwise, cx, cy, cz, x, y, z, feed) {
   } else if (!getProperty("useRadius")) {
     switch (getCircularPlane()) {
     case PLANE_XY:
-      writeBlock(gPlaneModal.format(17), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), iOutput.format(cx - start.x), jOutput.format(cy - start.y), getFeed(feed));
+      writeln("//Attempt G17: XY Plane Selection");
+      //writeBlock(gPlaneModal.format(17), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), iOutput.format(cx - start.x), jOutput.format(cy - start.y), getFeed(feed));
       break;
     case PLANE_ZX:
       writeln("//Attempt G18");
@@ -2602,7 +2617,8 @@ function onCircular(clockwise, cx, cy, cz, x, y, z, feed) {
     }
     switch (getCircularPlane()) {
     case PLANE_XY:
-      writeBlock(gPlaneModal.format(17), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), "R" + rFormat.format(r), getFeed(feed));
+      writeln("//Attempt G17: XY Plane Selection");
+      //writeBlock(gPlaneModal.format(17), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), "R" + rFormat.format(r), getFeed(feed));
       break;
     case PLANE_ZX:
       writeln("//Attempt G18");
@@ -2735,7 +2751,9 @@ function writeInitialPositioning(position, isRequired, codes1, codes2) {
 
   forceModals(gMotionModal);
   writeStartBlocks(isRequired, function() {
-    var modalCodes = formatWords(gAbsIncModal.format(90), gPlaneModal.format(17));
+    writeln("//Attempt G17: XY Plane Selection");
+    var modalCodes = formatWords(gAbsIncModal.format(90));
+    //var modalCodes = formatWords(gAbsIncModal.format(90), gPlaneModal.format(17));
     if (typeof disableLengthCompensation == "function") {
       disableLengthCompensation(!isRequired); // cancel tool length compensation prior to enabling it, required when switching G43/G43.4 modes
     }
@@ -2817,7 +2835,9 @@ function writeInitialPositioning(position, isRequired, codes1, codes2) {
 
   validate(!validateLengthCompensation || state.lengthCompensationActive, "Tool length compensation is not active."); // make sure that lenght compensation is enabled
   if (!isRequired) { // simple positioning
-    var modalCodes = formatWords(gAbsIncModal.format(90), gPlaneModal.format(17));
+    writeln("//Attempt G17: XY Plane Selection");
+    var modalCodes = formatWords(gAbsIncModal.format(90));
+    //var modalCodes = formatWords(gAbsIncModal.format(90), gPlaneModal.format(17));
     forceXYZ();
     if (!state.retractedZ && xyzFormat.getResultingValue(getCurrentPosition().z) < xyzFormat.getResultingValue(position.z)) {
       writeBlock(modalCodes, gMotionModal.format(motionCode.single), zOutput.format(position.z), feed);
@@ -2875,7 +2895,8 @@ function disableLengthCompensation(force) {
     if (!getSetting("allowCancelTCPBeforeRetracting", false)) {
       validate(state.retractedZ, "Cannot cancel tool length compensation if the machine is not fully retracted.");
     }
-    writeBlock(toolLengthCompOutput.format(49));
+    writeln("//Attempt G49: Z Tool Length Offset Cancel");
+    //writeBlock(toolLengthCompOutput.format(49));
   }
 }
 // <<<<< INCLUDED FROM include_files/disableLengthCompensation_fanuc.cpi
